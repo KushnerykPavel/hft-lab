@@ -4,29 +4,23 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 
-#[cfg(all(target_arch = "aarch64", target_os = "macos"))]
-const CACHE_LINE_SIZE: usize = 128;
-#[cfg(not(all(target_arch = "aarch64", target_os = "macos")))]
+#[cfg(target_os = "linux")]
 const CACHE_LINE_SIZE: usize = 64;
+#[cfg(not(target_os = "linux"))]
+const CACHE_LINE_SIZE: usize = 128;
 const DEFAULT_ITERATIONS: u64 = 50_000_000;
 const DEFAULT_RUNS: usize = 7;
 
 #[repr(C)]
-#[cfg_attr(all(target_arch = "aarch64", target_os = "macos"), repr(align(128)))]
-#[cfg_attr(
-    not(all(target_arch = "aarch64", target_os = "macos")),
-    repr(align(64))
-)]
+#[cfg_attr(target_os = "linux", repr(align(64)))]
+#[cfg_attr(not(target_os = "linux"), repr(align(128)))]
 struct SharedCounters {
     producer: AtomicU64,
     consumer: AtomicU64,
 }
 
-#[cfg_attr(all(target_arch = "aarch64", target_os = "macos"), repr(align(128)))]
-#[cfg_attr(
-    not(all(target_arch = "aarch64", target_os = "macos")),
-    repr(align(64))
-)]
+#[cfg_attr(target_os = "linux", repr(align(64)))]
+#[cfg_attr(not(target_os = "linux"), repr(align(128)))]
 struct CachePadded<T>(T);
 
 #[repr(C)]
