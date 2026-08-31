@@ -11,14 +11,25 @@ const CACHE_LINE_SIZE: usize = 64;
 const DEFAULT_ITERATIONS: u64 = 50_000_000;
 const DEFAULT_RUNS: usize = 7;
 
+#[repr(C)]
+#[cfg_attr(all(target_arch = "aarch64", target_os = "macos"), repr(align(128)))]
+#[cfg_attr(
+    not(all(target_arch = "aarch64", target_os = "macos")),
+    repr(align(64))
+)]
 struct SharedCounters {
     producer: AtomicU64,
     consumer: AtomicU64,
 }
 
-#[repr(align(64))]
+#[cfg_attr(all(target_arch = "aarch64", target_os = "macos"), repr(align(128)))]
+#[cfg_attr(
+    not(all(target_arch = "aarch64", target_os = "macos")),
+    repr(align(64))
+)]
 struct CachePadded<T>(T);
 
+#[repr(C)]
 struct PaddedCounters {
     producer: CachePadded<AtomicU64>,
     consumer: CachePadded<AtomicU64>,
